@@ -111,16 +111,28 @@ frontend/conversations/
 - `users` - Telegram users identified by `telegram_id` (string). Has `active_account_id` (string, nullable) to track the currently active account.
 - `accounts` - financial accounts with a bcrypt-hashed password. Many-to-many with users via `users-accounts`.
 - `users-accounts` - join table linking users to accounts. Auto-increment PK (`user_account_id`).
-- `expenses` - linked to both `account_id` and `user_id`. `value` stored as integer. `competence` stores the month/period string.
-- `incomes` - migration file exists but table definition is not yet implemented.
+- `expenses` - linked to both `account_id` and `user_id`. `value` stored as integer (cents). `competence` stores the month/period string (`YYYY-MM`). Has `expense_type` (smallint: 1 Mensal, 2 Avulso), `series_id` (nullable, links a recurring occurrence to its series), `category` and `sector` (independent classifications). The legacy free-text `type` column is now orphaned/unused.
+- `incomes` - same shape as `expenses`: `value` (cents), `competence` (`YYYY-MM`), `income_type` (smallint: 1 Mensal, 2 Avulso), `series_id` (nullable). The legacy free-text `type`/`category` columns are orphaned/unused.
+- `income_series` / `expense_series` - recurring "templates" + lifecycle for Mensal items: canonical `value`/`description`/`category`/`sector`, `start_competence`, `end_competence` (nullable), `active`. See **Recurring items** below.
 
-Soft deletes use `deleted_at` / `delete_at` timestamps (naming inconsistency exists in migrations - match whatever the table uses).
+Soft deletes use `deleted_at` / `delete_at` timestamps (naming inconsistency exists in migrations - match whatever the table uses). `incomes`/`expenses` use `delete_at`.
+
+### Recurring items (Mensal)
+
+Items typed **Mensal** (`income_type`/`expense_type` = 1) recur every month. There is no cron — recurrence is **lazy "catch-up" materialization**:
+
+- Adding a Mensal item creates a row in `income_series`/`expense_series` plus the first occurrence in `incomes`/`expenses` (tagged with `series_id`). Avulso items have `series_id = null`.
+- `materialize_recurring()` (`@/bot/backend/repositories/shared/materialize-recurring.ts`) runs when a month is opened — it's called at the top of `list_incomes_controller`, `list_expenses_controller`, and `calculate_balance_controller`. For each active series (`active`, `start_competence <= M`, `end_competence` null or `>= M`) it inserts a real occurrence into competence `M` **only if no row (alive OR soft-deleted) exists** for that `series_id` in `M`. It is idempotent.
+- A soft-deleted occurrence is a **tombstone**: it stops the catch-up from recreating that month (this is how "delete só este mês" works).
+- Edit/delete of a Mensal occurrence asks scope (`"single"` vs `"future"`) — handled in the update/delete repos. `"single"` touches only the occurrence row (catch-up never rewrites existing rows). `"future"` also updates the series template + already-materialized later months; for delete it calls `stop_*_series` (sets `active=false`, `end_competence`). Note: `"future"` is a bulk-forward overwrite — it does NOT preserve months previously edited as `"single"`.
 
 ### Libs
 
 - `@/libs/environments` - Zod-validated env; always import `env` from here, never from `process.env` directly.
 - `@/libs/utils` - exports `create_id()` (CUID2) and `hash_password(text)` (bcrypt using `env.BCRYPT_ROUNDS`). Use `hash_password` from here instead of importing bcrypt directly in repositories.
-- `@/libs/dayjs` - dayjs wrapper (stub, to be implemented).
+- `@/libs/currency` - `parse_money_to_cents(text)`, `format_cents(cents)`, `brl()`. Values are stored as integer cents.
+- `@/libs/dayjs` - competence helpers (`current_competence`, `shift_competence`, `format_competence`, `parse_competence`, `recent_competences`, ...). Competence format is `YYYY-MM`.
+- `@/libs/constants` - shared option sets: `INCOMES_TYPES`/`EXPENSES_TYPES` (1 Mensal, 2 Avulso), `TYPE_LABELS`, and `EXPENSE_SECTORS` (callback-key → label map). Stored in the DB as the integer codes.
 - `@/libs/openai` - OpenAI client wrapper (stub, to be implemented).
 
 ### Callback Query Keys

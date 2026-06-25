@@ -10,7 +10,10 @@ interface ListExpensesInput {
 interface ExpenseSummary {
     expenses_id: string;
     value: number;
+    expense_type: number;
+    series_id: string | null;
     category: string | null;
+    sector: string | null;
     description: string | null;
 }
 
@@ -26,7 +29,7 @@ async function list_expenses_repository({
         .where({ user_id: member.user_id, account_id, competence })
         .whereNull("delete_at")
         .orderBy("created_at", "asc")
-        .select("expenses_id", "value", "category", "description");
+        .select("expenses_id", "value", "expense_type", "series_id", "category", "sector", "description");
 
     return rows as ExpenseSummary[];
 }

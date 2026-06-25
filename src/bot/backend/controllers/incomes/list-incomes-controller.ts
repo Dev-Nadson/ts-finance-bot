@@ -1,6 +1,8 @@
 import { list_incomes_repository } from "@/bot/backend/repositories/incomes/list-incomes-repository";
+import { materialize_recurring } from "@/bot/backend/repositories/shared/materialize-recurring";
 import { format_cents } from "@/libs/currency";
 import { format_competence } from "@/libs/dayjs";
+import { TYPE_LABELS } from "@/libs/constants";
 
 interface ListIncomesInput {
     telegram_id: string;
@@ -9,6 +11,7 @@ interface ListIncomesInput {
 }
 
 async function list_incomes_controller({ telegram_id, account_id, competence }: ListIncomesInput): Promise<string> {
+    await materialize_recurring({ telegram_id, account_id, competence });
     const incomes = await list_incomes_repository({ telegram_id, account_id, competence });
 
     if (incomes.length === 0) {
@@ -16,7 +19,7 @@ async function list_incomes_controller({ telegram_id, account_id, competence }: 
     }
 
     const lines = incomes.map((income) => {
-        const type = income.type ? ` (${income.type})` : "";
+        const type = TYPE_LABELS[income.income_type] ? ` (${TYPE_LABELS[income.income_type]})` : "";
         return `• ${format_cents(income.value)} - ${income.description ?? "-"}${type}`;
     });
 

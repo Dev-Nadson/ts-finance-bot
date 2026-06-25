@@ -34,17 +34,35 @@ export async function delete_expense_conversation(
         await ctx.reply("Seleção inválida.");
         return;
     }
+    const is_recurring = !!expenses.find((e) => e.expenses_id === expenses_id)?.series_id;
 
-    const confirm = new InlineKeyboard().text("✅ Confirmar", "exp_del_yes").text("❌ Cancelar", "exp_del_no");
-    await ctx.reply("Tem certeza que deseja excluir esta despesa?", { reply_markup: confirm });
+    let scope: "single" | "future" = "single";
+    if (is_recurring) {
+        const choice = new InlineKeyboard()
+            .text("📌 Só este mês", "exp_del_single").row()
+            .text("🛑 Parar (este + futuros)", "exp_del_future").row()
+            .text("❌ Cancelar", "exp_del_no");
+        await ctx.reply("Esta despesa é mensal. Como deseja excluir?", { reply_markup: choice });
 
-    const confirm_ctx = await conversation.waitForCallbackQuery(["exp_del_yes", "exp_del_no"]);
-    await confirm_ctx.answerCallbackQuery();
-    if (confirm_ctx.callbackQuery.data === "exp_del_no") {
-        await ctx.reply("Exclusão cancelada.");
-        return;
+        const choice_ctx = await conversation.waitForCallbackQuery(["exp_del_single", "exp_del_future", "exp_del_no"]);
+        await choice_ctx.answerCallbackQuery();
+        if (choice_ctx.callbackQuery.data === "exp_del_no") {
+            await ctx.reply("Exclusão cancelada.");
+            return;
+        }
+        scope = choice_ctx.callbackQuery.data === "exp_del_future" ? "future" : "single";
+    } else {
+        const confirm = new InlineKeyboard().text("✅ Confirmar", "exp_del_yes").text("❌ Cancelar", "exp_del_no");
+        await ctx.reply("Tem certeza que deseja excluir esta despesa?", { reply_markup: confirm });
+
+        const confirm_ctx = await conversation.waitForCallbackQuery(["exp_del_yes", "exp_del_no"]);
+        await confirm_ctx.answerCallbackQuery();
+        if (confirm_ctx.callbackQuery.data === "exp_del_no") {
+            await ctx.reply("Exclusão cancelada.");
+            return;
+        }
     }
 
-    const result = await conversation.external(() => delete_expense_controller({ telegram_id, expenses_id }));
+    const result = await conversation.external(() => delete_expense_controller({ telegram_id, expenses_id, scope }));
     await ctx.reply(result);
 }

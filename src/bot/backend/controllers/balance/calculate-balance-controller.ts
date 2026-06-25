@@ -1,6 +1,7 @@
 import type { Context } from "grammy";
 import { get_active_account_repository } from "@/bot/backend/repositories/accounts/get-active-account-repository";
 import { calculate_balance_repository } from "@/bot/backend/repositories/balance/balance-repository";
+import { materialize_recurring } from "@/bot/backend/repositories/shared/materialize-recurring";
 import { format_cents } from "@/libs/currency";
 import { format_competence } from "@/libs/dayjs";
 
@@ -14,6 +15,9 @@ async function calculate_balance_controller(ctx: Context, competence: string): P
 
     const account = await get_active_account_repository(telegram_id);
     if (!account) return "Selecione uma conta primeiro em 💳 Contas.";
+
+    // Ensure recurring (Mensal) items exist for the viewed month before summing.
+    await materialize_recurring({ telegram_id, account_id: account.id, competence });
 
     const month = await calculate_balance_repository({ telegram_id, account_id: account.id, competence });
     const total = await calculate_balance_repository({ telegram_id, account_id: account.id });

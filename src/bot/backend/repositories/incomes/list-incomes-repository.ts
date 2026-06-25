@@ -10,7 +10,8 @@ interface ListIncomesInput {
 interface IncomeSummary {
     incomes_id: string;
     value: number;
-    type: string | null;
+    income_type: number;
+    series_id: string | null;
     description: string | null;
 }
 
@@ -26,7 +27,7 @@ async function list_incomes_repository({
         .where({ user_id: member.user_id, account_id, competence })
         .whereNull("delete_at")
         .orderBy("created_at", "asc")
-        .select("incomes_id", "value", "type", "description");
+        .select("incomes_id", "value", "income_type", "series_id", "description");
 
     return rows as IncomeSummary[];
 }
