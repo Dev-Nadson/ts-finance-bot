@@ -1,0 +1,38 @@
+{
+  "name": "ts-finance-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start:dev": "node --no-network-family-autoselection --dns-result-order=ipv4first --import tsx --watch src/bot/server.ts",
+    "migrate:list": "node --import tsx ./node_modules/.bin/knex migrate:list",
+    "migrate:make": "node --import tsx ./node_modules/.bin/knex migrate:make",
+    "migrate:latest": "node --import tsx ./node_modules/.bin/knex migrate:latest",
+    "migrate:down": "node --import tsx ./node_modules/.bin/knex migrate:down",
+    "migrate:rollback": "node --import tsx ./node_modules/.bin/knex migrate:rollback --all"
+  },
+  "keywords": [],
+  "author": "Dev-Nadson",
+  "license": "ISC",
+  "dependencies": {
+    "@grammyjs/conversations": "^2.1.1",
+    "@grammyjs/menu": "^1.3.1",
+    "@paralleldrive/cuid2": "^3.3.0",
+    "bcrypt": "^6.0.0",
+    "currency.js": "^2.0.4",
+    "dayjs": "^1.11.21",
+    "dotenv": "^17.4.2",
+    "grammy": "^1.44.0",
+    "knex": "^3.2.10",
+    "openai": "^6.44.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/node": "^26.0.0",
+    "tsc": "^2.0.4",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}

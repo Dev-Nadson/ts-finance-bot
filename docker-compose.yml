@@ -1,0 +1,16 @@
+services:
+  postgres:
+    container_name: finance-bot-db
+    image: bitnami/postgresql:latest
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=docker
+      - POSTGRES_DB=finance_db
+    volumes:
+      - finance_volume:/bitnami/postgresql
+
+volumes:
+  finance_volume:
