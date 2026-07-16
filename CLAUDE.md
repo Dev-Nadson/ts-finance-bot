@@ -38,7 +38,7 @@ OPENAI_API_KEY=        # Optional - only needed for AI insights feature
 NODE_ENV=development
 ```
 
-Docker Compose database default: `postgresql://postgres:docker@localhost:5432/finance_db`
+Docker Compose database default: `postgresql://postgres:docker@localhost:5434/finance_db`
 
 ## Architecture
 

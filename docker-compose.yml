@@ -4,11 +4,11 @@ services:
     image: bitnami/postgresql:latest
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5434"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=docker
-      - POSTGRES_DB=finance_db
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
     volumes:
       - finance_volume:/bitnami/postgresql
 
