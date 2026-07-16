@@ -28,22 +28,22 @@ log "Instalando dependências (npm ci)"
 npm ci
 
 # --- 3. Ensure Postgres is running ---------------------------------------
-if command -v docker >/dev/null 2>&1 && [ -f docker-compose.yml ]; then
-  log "Subindo Postgres (docker compose up -d)"
-  docker compose up -d
+# if command -v docker >/dev/null 2>&1 && [ -f docker-compose.yml ]; then
+#   log "Subindo Postgres (docker compose up -d)"
+#   docker compose up -d
 
-  # Wait until Postgres accepts connections before migrating.
-  log "Aguardando o Postgres ficar pronto"
-  for i in $(seq 1 30); do
-    if docker compose exec -T postgres pg_isready -U postgres >/dev/null 2>&1; then
-      break
-    fi
-    [ "$i" -eq 30 ] && fail "Postgres não ficou pronto a tempo."
-    sleep 1
-  done
-else
-  log "Docker/compose ausente — assumindo Postgres externo já disponível"
-fi
+#   # Wait until Postgres accepts connections before migrating.
+#   log "Aguardando o Postgres ficar pronto"
+#   for i in $(seq 1 30); do
+#     if docker compose exec -T postgres pg_isready -U postgres >/dev/null 2>&1; then
+#       break
+#     fi
+#     [ "$i" -eq 30 ] && fail "Postgres não ficou pronto a tempo."
+#     sleep 1
+#   done
+# else
+#   log "Docker/compose ausente — assumindo Postgres externo já disponível"
+# fi
 
 # --- 4. Run migrations ---------------------------------------------------
 log "Aplicando migrations"
