@@ -4,7 +4,7 @@ services:
     image: bitnami/postgresql:latest
     restart: unless-stopped
     ports:
-      - "${DB_PORT}:5434"
+      - "${DB_PORT:-5432}:5432"
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
