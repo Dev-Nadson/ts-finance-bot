@@ -6,9 +6,10 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
+      # bitnami/postgresql usa o prefixo POSTGRESQL_*, não POSTGRES_*.
+      # POSTGRESQL_POSTGRES_PASSWORD define a senha do superusuário "postgres".
+      - POSTGRESQL_POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRESQL_DATABASE=${DB_NAME}
     volumes:
       - finance_volume:/bitnami/postgresql
 
